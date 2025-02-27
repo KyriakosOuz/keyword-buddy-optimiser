@@ -8,7 +8,11 @@ import { ContentAnalysis } from "@/components/ContentAnalysis";
 import { OptimizationTips } from "@/components/OptimizationTips";
 import { MetaTagGenerator } from "@/components/MetaTagGenerator";
 import { AltTextGenerator } from "@/components/AltTextGenerator";
-import { FileText, PenSquare, BarChart3, Tag, ArrowLeft, FileImage } from "lucide-react";
+import { InternalLinkingSuggestions } from "@/components/InternalLinkingSuggestions";
+import { SchemaMarkupGenerator } from "@/components/SchemaMarkupGenerator";
+import { ContentImprovementSuggestions } from "@/components/ContentImprovementSuggestions";
+import { PerformanceDashboard } from "@/components/PerformanceDashboard";
+import { FileText, PenSquare, BarChart3, Tag, ArrowLeft, FileImage, Link2, Code, Sparkles, LineChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +25,7 @@ export default function Dashboard() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isAnalyzed, setIsAnalyzed] = useState(false);
   const [activeTab, setActiveTab] = useState("analysis");
+  const [additionalPages, setAdditionalPages] = useState<{title: string, url: string, content: string}[]>([]);
 
   const handleContentSubmit = (contentText: string, contentTitle: string) => {
     if (!contentText || !contentTitle) {
@@ -64,6 +69,15 @@ export default function Dashboard() {
     }
   };
 
+  const handleAddPage = (page: {title: string, url: string, content: string}) => {
+    setAdditionalPages([...additionalPages, page]);
+    
+    toast({
+      title: "Page added",
+      description: `"${page.title}" has been added for internal linking analysis.`,
+    });
+  };
+
   // Reset analysis if content is cleared
   useEffect(() => {
     if (!content) {
@@ -98,6 +112,7 @@ export default function Dashboard() {
               <CardContent>
                 <ContentUploader 
                   onContentSubmit={handleContentSubmit}
+                  onAddPage={handleAddPage}
                 />
                 
                 {content && (
@@ -126,25 +141,35 @@ export default function Dashboard() {
 
             {isAnalyzed && !isAnalyzing && (
               <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                <TabsList className="grid grid-cols-4 w-full">
+                <TabsList className="grid grid-cols-5 w-full">
                   <TabsTrigger value="analysis" className="flex items-center gap-2">
                     <BarChart3 className="h-4 w-4" />
-                    <span>Content Analysis</span>
+                    <span className="hidden sm:inline">Content Analysis</span>
+                    <span className="sm:hidden">Analysis</span>
                   </TabsTrigger>
                   <TabsTrigger value="tips" className="flex items-center gap-2">
                     <PenSquare className="h-4 w-4" />
-                    <span>Optimization Tips</span>
+                    <span className="hidden sm:inline">Optimization Tips</span>
+                    <span className="sm:hidden">Tips</span>
                   </TabsTrigger>
                   <TabsTrigger value="meta" className="flex items-center gap-2">
                     <Tag className="h-4 w-4" />
-                    <span>Meta Tags</span>
+                    <span className="hidden sm:inline">Meta Tags</span>
+                    <span className="sm:hidden">Meta</span>
                   </TabsTrigger>
                   <TabsTrigger value="alt-text" className="flex items-center gap-2">
                     <FileImage className="h-4 w-4" />
-                    <span>Alt Text</span>
+                    <span className="hidden sm:inline">Alt Text</span>
+                    <span className="sm:hidden">Alt</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="advanced" className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    <span className="hidden sm:inline">Advanced SEO</span>
+                    <span className="sm:hidden">Advanced</span>
                   </TabsTrigger>
                 </TabsList>
 
+                {/* Phase 1 Content */}
                 <TabsContent value="analysis" className="space-y-6">
                   <ContentAnalysis 
                     content={content} 
@@ -173,6 +198,63 @@ export default function Dashboard() {
                     content={content}
                     targetKeyword={targetKeyword}
                   />
+                </TabsContent>
+
+                {/* Phase 2 Content - Advanced Tab with Nested Tabs */}
+                <TabsContent value="advanced" className="space-y-6">
+                  <Tabs defaultValue="internal-linking" className="w-full">
+                    <TabsList className="w-full justify-start mb-4">
+                      <TabsTrigger value="internal-linking" className="flex items-center gap-1">
+                        <Link2 className="h-4 w-4" />
+                        <span>Internal Linking</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="schema" className="flex items-center gap-1">
+                        <Code className="h-4 w-4" />
+                        <span>Schema Markup</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="content-improvement" className="flex items-center gap-1">
+                        <Sparkles className="h-4 w-4" />
+                        <span>Content Improvement</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="performance" className="flex items-center gap-1">
+                        <LineChart className="h-4 w-4" />
+                        <span>Performance</span>
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="internal-linking" className="mt-0">
+                      <InternalLinkingSuggestions 
+                        content={content}
+                        title={title}
+                        additionalPages={additionalPages}
+                        targetKeyword={targetKeyword}
+                      />
+                    </TabsContent>
+                    
+                    <TabsContent value="schema" className="mt-0">
+                      <SchemaMarkupGenerator 
+                        content={content}
+                        title={title}
+                        targetKeyword={targetKeyword}
+                      />
+                    </TabsContent>
+                    
+                    <TabsContent value="content-improvement" className="mt-0">
+                      <ContentImprovementSuggestions 
+                        content={content}
+                        title={title}
+                        targetKeyword={targetKeyword}
+                      />
+                    </TabsContent>
+                    
+                    <TabsContent value="performance" className="mt-0">
+                      <PerformanceDashboard 
+                        content={content}
+                        title={title}
+                        targetKeyword={targetKeyword}
+                      />
+                    </TabsContent>
+                  </Tabs>
                 </TabsContent>
               </Tabs>
             )}
