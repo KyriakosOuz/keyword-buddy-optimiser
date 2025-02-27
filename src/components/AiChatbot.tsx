@@ -167,7 +167,7 @@ export function AiChatbot() {
     return (
       <Button
         onClick={toggleChatbot}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50 animate-fade-in"
       >
         <MessageSquare className="h-6 w-6" />
       </Button>
@@ -177,7 +177,7 @@ export function AiChatbot() {
   return (
     <Card className={`fixed bottom-6 right-6 overflow-hidden shadow-xl transition-all duration-300 z-50 flex flex-col ${
       isExpanded ? 'w-[440px] h-[580px]' : 'w-[350px] h-[480px]'
-    }`}>
+    } animate-fade-in`}>
       <div className="bg-primary text-white p-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5" />
