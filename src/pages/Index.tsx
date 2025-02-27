@@ -206,4 +206,22 @@ export default function Index() {
                         <CheckCircle className="h-5 w-5 text-primary mr-3 flex-shrink-0 mt-0.5" />
                         <span>AI-powered recommendations</span>
                       </div>
-                
+                      <div className="flex items-start">
+                        <CheckCircle className="h-5 w-5 text-primary mr-3 flex-shrink-0 mt-0.5" />
+                        <span>Meta tag generator</span>
+                      </div>
+                      <div className="flex items-start">
+                        <CheckCircle className="h-5 w-5 text-primary mr-3 flex-shrink-0 mt-0.5" />
+                        <span>Content structure analysis</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
