@@ -12,7 +12,10 @@ import { InternalLinkingSuggestions } from "@/components/InternalLinkingSuggesti
 import { SchemaMarkupGenerator } from "@/components/SchemaMarkupGenerator";
 import { ContentImprovementSuggestions } from "@/components/ContentImprovementSuggestions";
 import { PerformanceDashboard } from "@/components/PerformanceDashboard";
-import { FileText, PenSquare, BarChart3, Tag, ArrowLeft, FileImage, Link2, Code, Sparkles, LineChart } from "lucide-react";
+import { BrowserExtensionPreview } from "@/components/BrowserExtensionPreview";
+import { SeoReports } from "@/components/SeoReports";
+import { AiChatbot } from "@/components/AiChatbot";
+import { FileText, PenSquare, BarChart3, Tag, ArrowLeft, FileImage, Link2, Code, Sparkles, LineChart, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +29,8 @@ export default function Dashboard() {
   const [isAnalyzed, setIsAnalyzed] = useState(false);
   const [activeTab, setActiveTab] = useState("analysis");
   const [additionalPages, setAdditionalPages] = useState<{title: string, url: string, content: string}[]>([]);
+  const [subscriptionTier, setSubscriptionTier] = useState<'free' | 'pro' | 'enterprise'>('free');
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 
   const handleContentSubmit = (contentText: string, contentTitle: string) => {
     if (!contentText || !contentTitle) {
@@ -50,6 +55,13 @@ export default function Dashboard() {
     setTimeout(() => {
       setIsAnalyzing(false);
       setIsAnalyzed(true);
+      
+      // Show upgrade prompt for free users after first analysis
+      if (subscriptionTier === 'free' && !showUpgradePrompt) {
+        setTimeout(() => {
+          setShowUpgradePrompt(true);
+        }, 2000);
+      }
       
       toast({
         title: "Analysis complete",
@@ -77,6 +89,14 @@ export default function Dashboard() {
       description: `"${page.title}" has been added for internal linking analysis.`,
     });
   };
+  
+  const handleUpgrade = () => {
+    window.location.href = '/subscription';
+  };
+  
+  const handleChangePlan = () => {
+    window.location.href = '/subscription';
+  };
 
   // Reset analysis if content is cleared
   useEffect(() => {
@@ -95,11 +115,46 @@ export default function Dashboard() {
             <span>Back to Home</span>
           </Link>
           <h1 className="text-2xl font-display font-bold text-center text-gray-900">SEO.ai Dashboard</h1>
-          <div className="w-24"></div> {/* Empty div for flex spacing */}
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleChangePlan}
+              className="flex items-center gap-1"
+            >
+              <Crown className="h-4 w-4 text-amber-500" />
+              <span className="capitalize">{subscriptionTier} Plan</span>
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        {showUpgradePrompt && subscriptionTier === 'free' && (
+          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4 rounded-lg mb-8 shadow-md">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-white/20 rounded-full">
+                <Crown className="h-8 w-8" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold mb-1">Unlock Premium Features</h3>
+                <p className="mb-4 text-white/90">
+                  You're using the free version of SEO.ai. Upgrade to Pro for unlimited content analysis, 
+                  AI chatbot assistance, and advanced SEO tools.
+                </p>
+                <div className="flex gap-3">
+                  <Button onClick={handleUpgrade} className="bg-white text-indigo-600 hover:bg-white/90">
+                    Upgrade to Pro
+                  </Button>
+                  <Button variant="ghost" className="bg-transparent border border-white text-white hover:bg-white/20" onClick={() => setShowUpgradePrompt(false)}>
+                    Remind Me Later
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
             <Card className="sticky top-8">
@@ -272,9 +327,20 @@ export default function Dashboard() {
                 </Button>
               </Card>
             )}
+            
+            {/* Phase 4 Components */}
+            {isAnalyzed && (
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <BrowserExtensionPreview />
+                <SeoReports />
+              </div>
+            )}
           </div>
         </div>
       </main>
+      
+      {/* Fixed AI Chatbot */}
+      <AiChatbot />
     </div>
   );
 }
