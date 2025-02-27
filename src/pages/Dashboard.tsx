@@ -13,12 +13,14 @@ import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   const [content, setContent] = useState("");
-  const [keywords, setKeywords] = useState<string[]>([]);
+  const [title, setTitle] = useState("");
+  const [targetKeyword, setTargetKeyword] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isAnalyzed, setIsAnalyzed] = useState(false);
 
-  const handleContentSubmit = (text: string) => {
-    setContent(text);
+  const handleContentSubmit = (contentText: string, contentTitle: string) => {
+    setContent(contentText);
+    setTitle(contentTitle);
     setIsAnalyzing(true);
     
     // Simulate analysis process
@@ -28,8 +30,8 @@ export default function Dashboard() {
     }, 2000);
   };
 
-  const handleKeywordsUpdate = (newKeywords: string[]) => {
-    setKeywords(newKeywords);
+  const handleSelectKeyword = (keyword: string) => {
+    setTargetKeyword(keyword);
   };
 
   return (
@@ -57,14 +59,14 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <ContentUploader 
-                  onSubmit={handleContentSubmit} 
-                  isAnalyzing={isAnalyzing}
+                  onContentSubmit={handleContentSubmit}
                 />
                 
                 {content && (
                   <KeywordSuggestions 
-                    content={content} 
-                    onKeywordsUpdate={handleKeywordsUpdate}
+                    content={content}
+                    title={title}
+                    onSelectKeyword={handleSelectKeyword}
                   />
                 )}
               </CardContent>
@@ -90,15 +92,25 @@ export default function Dashboard() {
                 </TabsList>
 
                 <TabsContent value="analysis" className="space-y-6">
-                  <ContentAnalysis content={content} keywords={keywords} />
+                  <ContentAnalysis 
+                    content={content} 
+                    title={title}
+                    targetKeyword={targetKeyword}
+                  />
                 </TabsContent>
 
                 <TabsContent value="tips" className="space-y-6">
-                  <OptimizationTips content={content} keywords={keywords} />
+                  <OptimizationTips 
+                    content={content} 
+                    targetKeyword={targetKeyword}
+                  />
                 </TabsContent>
 
                 <TabsContent value="meta" className="space-y-6">
-                  <MetaTagGenerator content={content} keywords={keywords} />
+                  <MetaTagGenerator 
+                    content={content} 
+                    title={title}
+                  />
                 </TabsContent>
               </Tabs>
             )}
