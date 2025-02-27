@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ContentUploader } from "@/components/ContentUploader";
@@ -10,29 +10,66 @@ import { MetaTagGenerator } from "@/components/MetaTagGenerator";
 import { FileText, PenSquare, BarChart3, Tag, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
+  const { toast } = useToast();
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [targetKeyword, setTargetKeyword] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isAnalyzed, setIsAnalyzed] = useState(false);
+  const [activeTab, setActiveTab] = useState("analysis");
 
   const handleContentSubmit = (contentText: string, contentTitle: string) => {
+    if (!contentText || !contentTitle) {
+      toast({
+        title: "Missing content",
+        description: "Please provide both content and a title.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setContent(contentText);
     setTitle(contentTitle);
     setIsAnalyzing(true);
     
     // Simulate analysis process
+    toast({
+      title: "Analyzing content",
+      description: "This may take a few moments..."
+    });
+    
     setTimeout(() => {
       setIsAnalyzing(false);
       setIsAnalyzed(true);
+      
+      toast({
+        title: "Analysis complete",
+        description: "Your content has been analyzed. View results in the tabs.",
+      });
     }, 2000);
   };
 
   const handleSelectKeyword = (keyword: string) => {
     setTargetKeyword(keyword);
+    
+    if (keyword) {
+      toast({
+        title: "Keyword selected",
+        description: `"${keyword}" is now your target keyword.`,
+      });
+    }
   };
+
+  // Reset analysis if content is cleared
+  useEffect(() => {
+    if (!content) {
+      setIsAnalyzed(false);
+      setTargetKeyword("");
+    }
+  }, [content]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -74,8 +111,20 @@ export default function Dashboard() {
           </div>
 
           <div className="lg:col-span-2">
-            {isAnalyzed && (
-              <Tabs defaultValue="analysis" className="space-y-6">
+            {isAnalyzing && (
+              <Card className="h-full flex flex-col items-center justify-center py-16 text-center">
+                <div className="flex flex-col items-center justify-center space-y-4">
+                  <div className="w-16 h-16 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+                  <CardTitle className="text-xl">Analyzing Content</CardTitle>
+                  <CardDescription className="max-w-md">
+                    Our AI is processing your content and generating optimization suggestions...
+                  </CardDescription>
+                </div>
+              </Card>
+            )}
+
+            {isAnalyzed && !isAnalyzing && (
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <TabsList className="grid grid-cols-3 w-full">
                   <TabsTrigger value="analysis" className="flex items-center gap-2">
                     <BarChart3 className="h-4 w-4" />
@@ -116,7 +165,7 @@ export default function Dashboard() {
               </Tabs>
             )}
 
-            {!isAnalyzed && (
+            {!isAnalyzed && !isAnalyzing && (
               <Card className="h-full flex flex-col items-center justify-center py-16 text-center">
                 <FileText className="h-16 w-16 text-muted-foreground/50 mb-6" />
                 <CardTitle className="text-xl mb-2">No Content Analyzed Yet</CardTitle>
