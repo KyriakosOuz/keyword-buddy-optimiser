@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line, Bar, ResponsiveContainer } from 'recharts';
 import { calculateSeoScore } from '@/utils/seoUtils';
+import { Badge } from '@/components/ui/badge';
 import { LineChart as LineChartIcon, BarChart3, TrendingUp, Search, Lightbulb, GanttChart } from 'lucide-react';
 
 interface PerformanceDashboardProps {
@@ -489,3 +490,4 @@ export function PerformanceDashboard({ content, title, targetKeyword }: Performa
 }
 
 export default PerformanceDashboard;
+

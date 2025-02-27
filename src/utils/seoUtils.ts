@@ -495,3 +495,243 @@ export const getContentImprovementSuggestions = (
   
   return suggestions;
 };
+
+/**
+ * Generate schema markup based on type and fields
+ */
+export const generateSchemaMarkup = (
+  schemaType: string,
+  fields: Record<string, string>
+): string => {
+  let schema: Record<string, any> = {
+    "@context": "https://schema.org",
+  };
+  
+  switch (schemaType) {
+    case 'article':
+      schema["@type"] = "Article";
+      schema["headline"] = fields.headline || "";
+      schema["author"] = {
+        "@type": "Person",
+        "name": fields.author || ""
+      };
+      schema["publisher"] = {
+        "@type": "Organization",
+        "name": fields.publisher || ""
+      };
+      schema["datePublished"] = fields.publishDate || "";
+      schema["description"] = fields.description || "";
+      break;
+      
+    case 'product':
+      schema["@type"] = "Product";
+      schema["name"] = fields.name || "";
+      schema["description"] = fields.description || "";
+      schema["offers"] = {
+        "@type": "Offer",
+        "price": fields.price || "",
+        "priceCurrency": fields.currency || "USD",
+        "availability": `https://schema.org/${fields.availability || "InStock"}`
+      };
+      if (fields.brand) {
+        schema["brand"] = {
+          "@type": "Brand",
+          "name": fields.brand
+        };
+      }
+      break;
+      
+    case 'faq':
+      schema["@type"] = "FAQPage";
+      schema["mainEntity"] = [];
+      
+      // Add FAQ items
+      for (let i = 1; i <= 3; i++) {
+        if (fields[`question${i}`] && fields[`answer${i}`]) {
+          schema["mainEntity"].push({
+            "@type": "Question",
+            "name": fields[`question${i}`],
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": fields[`answer${i}`]
+            }
+          });
+        }
+      }
+      break;
+      
+    case 'review':
+      schema["@type"] = "Review";
+      schema["itemReviewed"] = {
+        "@type": "Thing",
+        "name": fields.itemReviewed || ""
+      };
+      schema["reviewRating"] = {
+        "@type": "Rating",
+        "ratingValue": fields.reviewRating || "5",
+        "bestRating": fields.bestRating || "5"
+      };
+      schema["author"] = {
+        "@type": "Person",
+        "name": fields.author || ""
+      };
+      schema["reviewBody"] = fields.reviewBody || "";
+      break;
+      
+    case 'event':
+      schema["@type"] = "Event";
+      schema["name"] = fields.name || "";
+      schema["startDate"] = fields.startDate || "";
+      schema["endDate"] = fields.endDate || "";
+      schema["description"] = fields.description || "";
+      schema["location"] = {
+        "@type": "Place",
+        "name": fields.location || ""
+      };
+      if (fields.organizer) {
+        schema["organizer"] = {
+          "@type": "Organization",
+          "name": fields.organizer
+        };
+      }
+      break;
+  }
+  
+  return JSON.stringify(schema, null, 2);
+};
+
+/**
+ * Generate internal linking suggestions between pages
+ */
+export const generateInternalLinkingSuggestions = (
+  content: string,
+  title: string,
+  targetKeyword: string,
+  additionalPages: Array<{title: string, url: string, content: string}>
+): Array<{
+  id: number;
+  text: string;
+  context: string;
+  targetPage: string;
+  targetUrl: string;
+  type: 'inbound' | 'outbound';
+  anchors: Array<{
+    text: string;
+    isSelected: boolean;
+  }>;
+}> => {
+  if (!content || additionalPages.length === 0) return [];
+  
+  const suggestions = [];
+  const contentLower = content.toLowerCase();
+  const keywordLower = targetKeyword.toLowerCase();
+  let suggestionId = 1;
+  
+  // Extract important phrases from content (simplified)
+  const extractPhrases = (text: string) => {
+    const sentences = text.split(/[.!?]+/).filter(Boolean);
+    const phrases = [];
+    
+    for (const sentence of sentences) {
+      // Simple phrase extraction
+      const words = sentence.split(/\s+/).filter(w => w.length > 3);
+      for (let i = 0; i < words.length - 2; i++) {
+        const phrase = words.slice(i, i + 3).join(' ');
+        if (phrase.length > 10 && phrase.length < 50) {
+          phrases.push(phrase);
+        }
+      }
+    }
+    
+    return phrases;
+  };
+  
+  // Get important phrases from current content
+  const currentPhrases = extractPhrases(content);
+  
+  // Look for inbound linking opportunities
+  for (const page of additionalPages) {
+    const pagePhrases = extractPhrases(page.content);
+    const pageContentLower = page.content.toLowerCase();
+    
+    // Check if the additional page mentions our target keyword or title
+    if (pageContentLower.includes(keywordLower) || 
+        pageContentLower.includes(title.toLowerCase())) {
+      
+      // Find the context for this mention
+      const sentences = page.content.split(/[.!?]+/).filter(Boolean);
+      for (const sentence of sentences) {
+        const sentenceLower = sentence.toLowerCase();
+        
+        if (sentenceLower.includes(keywordLower) || sentenceLower.includes(title.toLowerCase())) {
+          // This sentence in the other page mentions our keyword or title
+          
+          // Generate some anchor text options
+          const anchorOptions = [
+            targetKeyword,
+            title,
+            `${targetKeyword} guide`,
+            `learn about ${targetKeyword}`
+          ].filter(Boolean);
+          
+          suggestions.push({
+            id: suggestionId++,
+            text: `${page.title} mentions "${targetKeyword}" and could link to this page`,
+            context: sentence.trim(),
+            targetPage: page.title,
+            targetUrl: '', // For inbound links, the target is the current page
+            type: 'inbound',
+            anchors: anchorOptions.map((text, index) => ({
+              text,
+              isSelected: index === 0
+            }))
+          });
+          
+          break; // One suggestion per page is enough
+        }
+      }
+    }
+    
+    // Look for outbound linking opportunities
+    for (const phrase of pagePhrases) {
+      if (contentLower.includes(phrase.toLowerCase())) {
+        // Our content mentions a phrase from the other page
+        
+        // Find the context for this mention
+        const sentences = content.split(/[.!?]+/).filter(Boolean);
+        for (const sentence of sentences) {
+          const sentenceLower = sentence.toLowerCase();
+          
+          if (sentenceLower.includes(phrase.toLowerCase())) {
+            // This sentence in our content mentions a phrase from the other page
+            
+            // Generate some anchor text options
+            const anchorOptions = [
+              phrase,
+              page.title,
+              `more about ${page.title.toLowerCase()}`,
+              `${page.title} guide`
+            ].filter(Boolean);
+            
+            suggestions.push({
+              id: suggestionId++,
+              text: `This page mentions content related to "${page.title}" and could link to it`,
+              context: sentence.trim(),
+              targetPage: page.title,
+              targetUrl: page.url,
+              type: 'outbound',
+              anchors: anchorOptions.map((text, index) => ({
+                text,
+                isSelected: index === 0
+              }))
+            });
+            
+            break; // One suggestion per phrase is enough
+          }
+        }
+      }
+    }
+  }
+  
+  return suggestions;
+};
