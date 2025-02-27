@@ -338,4 +338,160 @@ export const calculateSeoScore = (
   const readabilityScore = Math.min(20, Math.floor(readability.score / 5));
   
   // Structure score (max 15)
-  let structureScore = 0
+  let structureScore = 0;
+  
+  // Check for headings
+  if (headings.length > 0) {
+    structureScore += 5;
+  }
+  
+  // Check for paragraphs
+  if (readability.paragraphCount >= 5) {
+    structureScore += 5;
+  } else if (readability.paragraphCount >= 3) {
+    structureScore += 3;
+  }
+  
+  // Check for lists and formatting
+  const hasList = content.match(/<ul|<ol|<li|^\s*[-*+]\s|\n\s*[-*+]\s/mi);
+  if (hasList) {
+    structureScore += 2;
+  }
+  
+  // Check for emphasis (bold, italic)
+  const hasEmphasis = content.match(/\*\*|\*|__|_|<strong|<em|<b>|<i>/i);
+  if (hasEmphasis) {
+    structureScore += 3;
+  }
+  
+  // Meta tags score (max 15)
+  let metaScore = 0;
+  
+  // Title has optimal length
+  if (title) {
+    if (title.length <= 60 && title.length >= 30) {
+      metaScore += 5;
+    } else if (title.length < 30) {
+      metaScore += 2;
+    }
+  }
+  
+  // Meta description from content (first paragraph)
+  const potentialDescription = firstParagraph.substring(0, 155);
+  if (potentialDescription.length >= 120) {
+    metaScore += 5;
+  } else if (potentialDescription.length >= 70) {
+    metaScore += 3;
+  }
+  
+  // Meta description contains keyword
+  if (potentialDescription.toLowerCase().includes(keywordLower)) {
+    metaScore += 5;
+  }
+  
+  // Calculate total score
+  const totalScore = contentScore + keywordScore + readabilityScore + structureScore + metaScore;
+  
+  // Calculate normalized score (0-100)
+  const normalizedScore = Math.min(100, Math.round(totalScore));
+  
+  return {
+    score: normalizedScore,
+    breakdown: {
+      content: contentScore,
+      keyword: keywordScore,
+      readability: readabilityScore,
+      structure: structureScore,
+      meta: metaScore
+    }
+  };
+};
+
+/**
+ * Generate content improvement suggestions
+ */
+export const getContentImprovementSuggestions = (
+  content: string,
+  title: string,
+  targetKeyword: string
+) => {
+  if (!content) return [];
+  
+  const suggestions = [];
+  const readability = analyzeReadability(content);
+  
+  // Find potential passive voice sentences (simplified)
+  const sentences = content.split(/[.!?]+/).filter(Boolean);
+  for (let i = 0; i < sentences.length; i++) {
+    const sentence = sentences[i].trim();
+    // Simple passive voice detection (not comprehensive)
+    if (/\b(?:is|are|was|were|be|been|being)\s+\w+ed\b/i.test(sentence)) {
+      suggestions.push({
+        id: suggestions.length + 1,
+        type: 'passive-voice' as const,
+        original: sentence,
+        improved: sentence.replace(/\b(is|are|was|were|be|been|being)\s+(\w+ed)\b/i, 'actively $2'),
+        explanation: 'Use active voice instead of passive voice for stronger, clearer writing.',
+        context: i > 0 ? sentences[i-1] + '. ' + sentence : sentence
+      });
+    }
+  }
+  
+  // Find long, complex sentences
+  for (let i = 0; i < sentences.length; i++) {
+    const sentence = sentences[i].trim();
+    const words = sentence.split(/\s+/);
+    if (words.length > 25) {
+      const halfPoint = Math.floor(words.length / 2);
+      const firstHalf = words.slice(0, halfPoint).join(' ');
+      const secondHalf = words.slice(halfPoint).join(' ');
+      
+      suggestions.push({
+        id: suggestions.length + 1,
+        type: 'readability' as const,
+        original: sentence,
+        improved: `${firstHalf}. ${secondHalf}`,
+        explanation: 'Break long sentences into shorter ones to improve readability.',
+        context: sentence
+      });
+    }
+  }
+  
+  // Suggest keyword variations if target keyword is used
+  if (targetKeyword) {
+    const lowercaseContent = content.toLowerCase();
+    const keywordCount = (lowercaseContent.match(new RegExp(targetKeyword.toLowerCase(), 'g')) || []).length;
+    
+    if (keywordCount > 2) {
+      // Generate variations
+      const variations = [
+        targetKeyword,
+        `about ${targetKeyword}`,
+        `${targetKeyword} tips`,
+        `best ${targetKeyword}`,
+        `how to optimize ${targetKeyword}`
+      ];
+      
+      suggestions.push({
+        id: suggestions.length + 1,
+        type: 'keyword-variation' as const,
+        original: `Using "${targetKeyword}" ${keywordCount} times`,
+        improved: `Try these variations: "${variations.join('", "')}"`,
+        explanation: 'Use keyword variations to avoid keyword stuffing while maintaining SEO relevance.',
+      });
+    }
+  }
+  
+  // Suggest adding a call to action if none is found
+  if (!content.match(/\b(?:click|sign up|subscribe|download|learn more|contact|call|email|buy|purchase|order|try|get started|visit)\b/i)) {
+    suggestions.push({
+      id: suggestions.length + 1,
+      type: 'cta' as const,
+      original: "Your content lacks a clear call-to-action.",
+      improved: "Consider adding a sentence like: \"Sign up for our newsletter to learn more about optimizing your SEO strategy.\"",
+      explanation: 'Adding a call-to-action improves engagement and conversion rates.',
+    });
+  }
+  
+  return suggestions;
+};
