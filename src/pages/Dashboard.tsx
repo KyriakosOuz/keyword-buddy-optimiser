@@ -110,6 +110,7 @@ export default function Dashboard() {
                   <MetaTagGenerator 
                     content={content} 
                     title={title}
+                    targetKeyword={targetKeyword}
                   />
                 </TabsContent>
               </Tabs>
