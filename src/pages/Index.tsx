@@ -13,7 +13,8 @@ import {
   Link2,
   Code,
   Network,
-  ExternalLink
+  ExternalLink,
+  Search
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,11 +37,11 @@ export default function Index() {
   const testimonialsControls = useAnimation();
   const ctaControls = useAnimation();
   
-  const featuresInView = useInView(featuresRef, { once: true, threshold: 0.2 });
-  const howItWorksInView = useInView(howItWorksRef, { once: true, threshold: 0.2 });
-  const pricingInView = useInView(pricingRef, { once: true, threshold: 0.2 });
-  const testimonialsInView = useInView(testimonialsRef, { once: true, threshold: 0.2 });
-  const ctaInView = useInView(ctaRef, { once: true, threshold: 0.2 });
+  const featuresInView = useInView(featuresRef, { once: true, amount: 0.2 });
+  const howItWorksInView = useInView(howItWorksRef, { once: true, amount: 0.2 });
+  const pricingInView = useInView(pricingRef, { once: true, amount: 0.2 });
+  const testimonialsInView = useInView(testimonialsRef, { once: true, amount: 0.2 });
+  const ctaInView = useInView(ctaRef, { once: true, amount: 0.2 });
 
   useEffect(() => {
     window.scrollTo(0, 0);
