@@ -7,7 +7,8 @@ import { KeywordSuggestions } from "@/components/KeywordSuggestions";
 import { ContentAnalysis } from "@/components/ContentAnalysis";
 import { OptimizationTips } from "@/components/OptimizationTips";
 import { MetaTagGenerator } from "@/components/MetaTagGenerator";
-import { FileText, PenSquare, BarChart3, Tag, ArrowLeft } from "lucide-react";
+import { AltTextGenerator } from "@/components/AltTextGenerator";
+import { FileText, PenSquare, BarChart3, Tag, ArrowLeft, FileImage } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -125,7 +126,7 @@ export default function Dashboard() {
 
             {isAnalyzed && !isAnalyzing && (
               <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                <TabsList className="grid grid-cols-3 w-full">
+                <TabsList className="grid grid-cols-4 w-full">
                   <TabsTrigger value="analysis" className="flex items-center gap-2">
                     <BarChart3 className="h-4 w-4" />
                     <span>Content Analysis</span>
@@ -137,6 +138,10 @@ export default function Dashboard() {
                   <TabsTrigger value="meta" className="flex items-center gap-2">
                     <Tag className="h-4 w-4" />
                     <span>Meta Tags</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="alt-text" className="flex items-center gap-2">
+                    <FileImage className="h-4 w-4" />
+                    <span>Alt Text</span>
                   </TabsTrigger>
                 </TabsList>
 
@@ -159,6 +164,13 @@ export default function Dashboard() {
                   <MetaTagGenerator 
                     content={content} 
                     title={title}
+                    targetKeyword={targetKeyword}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="alt-text" className="space-y-6">
+                  <AltTextGenerator 
+                    content={content}
                     targetKeyword={targetKeyword}
                   />
                 </TabsContent>
