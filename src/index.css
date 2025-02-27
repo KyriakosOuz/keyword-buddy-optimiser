@@ -152,3 +152,43 @@
   transform: translateX(100%);
   transition: transform 0.3s ease-in;
 }
+
+/* Landing page animations */
+.animate-on-scroll {
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.8s ease-out forwards;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Landing page responsive helpers */
+@media (max-width: 640px) {
+  .content-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Additional utility classes for the landing page */
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, #1e293b, #475569);
+}
+
+.shadow-soft {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+}

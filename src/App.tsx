@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import ApiPage from "./pages/ApiPage";
 import NotFound from "./pages/NotFound";
+import LandingPage from "./pages/LandingPage";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/landing" element={<LandingPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/subscription" element={<SubscriptionPage />} />
           <Route path="/api" element={<ApiPage />} />
